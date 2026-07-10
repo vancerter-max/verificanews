@@ -1,7 +1,7 @@
 // ==========================================
-// VARIÁVEL DA API (depois você troca)
+// VARIÁVEL DA API (CONECTADA À SUA IA)
 // ==========================================
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://vancer.pythonanywhere.com';
 
 // ==========================================
 // VARIÁVEL PARA ARMAZENAR A ÚLTIMA RESPOSTA
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const exemploBtns = document.querySelectorAll('.exemplo-btn');
 
     // ==========================================
-    // ANALISAR NOTÍCIA
+    // ANALISAR NOTÍCIA (COM IA DE VERDADE!)
     // ==========================================
     async function analisarNoticia(texto) {
         loading.classList.remove('hidden');
@@ -79,25 +79,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // ==========================================
-            // SIMULAÇÃO PARA TESTE (depois troca pela IA)
+            // CHAMA A IA NO PYTHONANYWHERE
             // ==========================================
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const response = await fetch(`${API_URL}/analisar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ texto: texto })
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro na análise');
+            }
+
+            const data = await response.json();
             
-            const fakeData = {
-                classificacao: Math.random() > 0.5 ? 'Verdadeira' : 'Falsa',
-                confianca: Math.floor(Math.random() * 40) + 60,
-                explicacao: 'Esta é uma simulação. A IA real será integrada em breve!',
-                dicas: ['🔍 Teste local funcionando!', '📊 Em breve com IA real']
-            };
+            // Verifica se a IA retornou erro
+            if (data.erro) {
+                throw new Error(data.erro);
+            }
             
             // Guarda a resposta para o áudio
             ultimaResposta = {
-                texto: `A notícia foi classificada como ${fakeData.classificacao} com ${fakeData.confianca}% de confiança. ${fakeData.explicacao}`,
-                classificacao: fakeData.classificacao,
-                confianca: fakeData.confianca
+                texto: data.explicacao || 'Análise concluída.',
+                classificacao: data.classificacao || 'Duvidosa',
+                confianca: data.confianca || 0
             };
             
-            exibirResultado(fakeData);
+            exibirResultado(data);
 
         } catch (error) {
             alert('❌ Erro ao analisar: ' + error.message);
@@ -136,6 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
             dicasDiv.style.display = 'block';
         } else {
             dicasDiv.style.display = 'none';
+        }
+
+        // Mostra se leu uma URL
+        if (data.url_lida) {
+            const urlDiv = document.getElementById('analise_url');
+            if (urlDiv) {
+                urlDiv.textContent = `🔗 URL lida: ${data.url_lida}`;
+                urlDiv.style.display = 'block';
+            }
         }
 
         // Habilita o botão de áudio e atualiza status
@@ -182,6 +201,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('audioStatus').textContent = '🔇 Aguarde a análise';
         document.getElementById('audioStatus').style.color = '#495057';
         ultimaResposta = { texto: '', classificacao: '', confianca: 0 };
+        
+        // Esconde a URL lida
+        const urlDiv = document.getElementById('analise_url');
+        if (urlDiv) {
+            urlDiv.style.display = 'none';
+        }
+        
         textoInput.focus();
     });
 
