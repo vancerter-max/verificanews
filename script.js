@@ -1,57 +1,64 @@
 // ==========================================
-// VARIÁVEL DA API (CONECTADA À SUA IA)
+// VARIÁVEL DA API
 // ==========================================
 const API_URL = 'https://vancer.pythonanywhere.com';
 
 // ==========================================
-// VARIÁVEL PARA ARMAZENAR A ÚLTIMA RESPOSTA
+// VARIÁVEIS GLOBAIS
 // ==========================================
 let ultimaResposta = {
     texto: '',
     classificacao: '',
-    confianca: 0
+    confianca: 0,
+    textoOriginal: ''
 };
 
 // ==========================================
-// FUNÇÃO DE ÁUDIO (LEITURA EM VOZ ALTA)
+// FUNÇÃO DE ÁUDIO
 // ==========================================
 function falar(texto) {
-    // Verifica se o navegador suporta Speech Synthesis
     if ('speechSynthesis' in window) {
-        // Para qualquer fala anterior
         window.speechSynthesis.cancel();
-        
-        // Cria a fala
         const utterance = new SpeechSynthesisUtterance(texto);
-        utterance.lang = 'pt-BR';           // Português do Brasil
-        utterance.rate = 0.9;               // Velocidade (0.9 = mais lento, 1 = normal)
-        utterance.pitch = 1.0;              // Tom de voz
-        utterance.volume = 1.0;             // Volume máximo
+        utterance.lang = 'pt-BR';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
         
-        // Fala!
         window.speechSynthesis.speak(utterance);
         
         document.getElementById('audioStatus').textContent = '🔊 Falando...';
         document.getElementById('audioStatus').style.color = '#28a745';
         
-        // Quando terminar de falar, volta ao normal
         utterance.onend = function() {
             document.getElementById('audioStatus').textContent = '✅ Áudio finalizado';
             document.getElementById('audioStatus').style.color = '#495057';
             setTimeout(() => {
                 document.getElementById('audioStatus').textContent = '🔊 Clique para ouvir novamente';
-                document.getElementById('audioStatus').style.color = '#495057';
             }, 3000);
         };
         
-        // Se der erro
         utterance.onerror = function() {
             document.getElementById('audioStatus').textContent = '❌ Erro no áudio';
             document.getElementById('audioStatus').style.color = '#dc3545';
         };
-        
     } else {
-        alert('❌ Seu navegador não suporta a função de áudio. Use Chrome, Edge ou Safari.');
+        alert('❌ Seu navegador não suporta áudio. Use Chrome, Edge ou Safari.');
+    }
+}
+
+// ==========================================
+// CARREGAR ESTATÍSTICAS
+// ==========================================
+async function carregarEstatisticas() {
+    try {
+        const response = await fetch(`${API_URL}/stats`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('statsBanco').textContent = data.banco_dados || '?';
+        }
+    } catch {
+        document.getElementById('statsBanco').textContent = '?';
     }
 }
 
@@ -66,45 +73,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultado = document.getElementById('resultado');
     const novoBtn = document.getElementById('novoBtn');
     const exemploBtns = document.querySelectorAll('.exemplo-btn');
+    
+    // Elementos de feedback
+    const feedbackArea = document.getElementById('feedback-area');
+    const feedbackSim = document.getElementById('feedbackSim');
+    const feedbackNao = document.getElementById('feedbackNao');
+    const feedbackCorrecao = document.getElementById('feedback-correcao');
+    const corretoVerdadeiro = document.getElementById('corretoVerdadeiro');
+    const corretoFalso = document.getElementById('corretoFalso');
+    const feedbackExplicacao = document.getElementById('feedback-explicacao');
+    const feedbackExplicacaoInput = document.getElementById('feedbackExplicacaoInput');
+    const feedbackEnviar = document.getElementById('feedbackEnviar');
+    const feedbackObrigado = document.getElementById('feedback-obrigado');
+
+    // Carrega estatísticas
+    carregarEstatisticas();
 
     // ==========================================
-    // ANALISAR NOTÍCIA (COM IA DE VERDADE!)
+    // ANALISAR NOTÍCIA
     // ==========================================
     async function analisarNoticia(texto) {
         loading.classList.remove('hidden');
         resultado.classList.add('hidden');
+        feedbackArea.classList.add('hidden');
+        feedbackCorrecao.classList.add('hidden');
+        feedbackExplicacao.classList.add('hidden');
+        feedbackObrigado.classList.add('hidden');
         analisarBtn.disabled = true;
         audioBtn.disabled = true;
         document.getElementById('audioStatus').textContent = '⏳ Analisando...';
 
         try {
-            // ==========================================
-            // CHAMA A IA NO PYTHONANYWHERE
-            // ==========================================
             const response = await fetch(`${API_URL}/analisar`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ texto: texto })
             });
 
-            if (!response.ok) {
-                throw new Error('Erro na análise');
-            }
+            if (!response.ok) throw new Error('Erro na análise');
 
             const data = await response.json();
             
-            // Verifica se a IA retornou erro
-            if (data.erro) {
-                throw new Error(data.erro);
-            }
+            if (data.erro) throw new Error(data.erro);
             
-            // Guarda a resposta para o áudio
+            // Guarda a resposta para o áudio e feedback
             ultimaResposta = {
                 texto: data.explicacao || 'Análise concluída.',
                 classificacao: data.classificacao || 'Duvidosa',
-                confianca: data.confianca || 0
+                confianca: data.confianca || 0,
+                textoOriginal: texto
             };
             
             exibirResultado(data);
@@ -125,17 +142,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function exibirResultado(data) {
         const classificacaoDiv = document.getElementById('classificacao');
         const confiancaDiv = document.getElementById('confianca');
+        const urlDiv = document.getElementById('analise_url');
         const explicacaoDiv = document.getElementById('explicacao');
         const dicasDiv = document.getElementById('dicas');
 
+        // Classificação
         const classe = data.classificacao ? data.classificacao.toLowerCase() : 'duvidosa';
         const emoji = data.classificacao === 'Verdadeira' ? '✅' : data.classificacao === 'Falsa' ? '❌' : '⚠️';
         
         classificacaoDiv.textContent = `${emoji} ${data.classificacao || 'Duvidosa'}`;
         classificacaoDiv.className = `classificacao-${classe}`;
         confiancaDiv.textContent = `🎯 Confiança: ${data.confianca || 0}%`;
+
+        // URL
+        if (data.url_lida) {
+            urlDiv.textContent = `🔗 URL lida: ${data.url_lida}`;
+            urlDiv.style.display = 'block';
+        } else {
+            urlDiv.style.display = 'none';
+        }
+
+        // Explicação
         explicacaoDiv.textContent = data.explicacao || 'Análise concluída.';
 
+        // Dicas
         if (data.dicas && data.dicas.length > 0) {
             let html = '<ul style="list-style:none;padding:0;">';
             data.dicas.forEach(dica => {
@@ -148,34 +178,113 @@ document.addEventListener('DOMContentLoaded', () => {
             dicasDiv.style.display = 'none';
         }
 
-        // Mostra se leu uma URL
-        if (data.url_lida) {
-            const urlDiv = document.getElementById('analise_url');
-            if (urlDiv) {
-                urlDiv.textContent = `🔗 URL lida: ${data.url_lida}`;
-                urlDiv.style.display = 'block';
-            }
-        }
-
-        // Habilita o botão de áudio e atualiza status
+        // Habilita áudio
         audioBtn.disabled = false;
         document.getElementById('audioStatus').textContent = '🔊 Clique para ouvir a resposta';
-        document.getElementById('audioStatus').style.color = '#28a745';
 
+        // Mostra resultado e feedback
         resultado.classList.remove('hidden');
+        
+        // Mostra área de feedback (se não for erro)
+        if (data.classificacao !== 'Erro') {
+            feedbackArea.classList.remove('hidden');
+            feedbackObrigado.classList.add('hidden');
+            feedbackCorrecao.classList.add('hidden');
+            feedbackExplicacao.classList.add('hidden');
+        }
+        
         resultado.scrollIntoView({ behavior: 'smooth' });
+        
+        // Atualiza estatísticas
+        carregarEstatisticas();
     }
 
     // ==========================================
-    // BOTÃO DE ÁUDIO - LÊ A RESPOSTA
+    // FEEDBACK - COMUNIDADE ENSINA A IA
+    // ==========================================
+
+    // Usuário diz que a IA acertou
+    feedbackSim.addEventListener('click', () => {
+        feedbackObrigado.classList.remove('hidden');
+        feedbackObrigado.innerHTML = `
+            <p>✅ <strong>Ótimo!</strong> A IA acertou!</p>
+            <p style="font-size:0.9em;color:#666;">🧠 Seu feedback ajuda a melhorar o sistema!</p>
+        `;
+        feedbackCorrecao.classList.add('hidden');
+        feedbackExplicacao.classList.add('hidden');
+    });
+
+    // Usuário diz que a IA errou
+    feedbackNao.addEventListener('click', () => {
+        feedbackCorrecao.classList.remove('hidden');
+        feedbackExplicacao.classList.add('hidden');
+        feedbackObrigado.classList.add('hidden');
+    });
+
+    // Usuário corrige: Verdadeira
+    corretoVerdadeiro.addEventListener('click', () => {
+        feedbackExplicacao.classList.remove('hidden');
+        feedbackExplicacaoInput.placeholder = 'Explique por que é Verdadeira (opcional)...';
+        feedbackExplicacao.dataset.correcao = 'Verdadeira';
+    });
+
+    // Usuário corrige: Falsa
+    corretoFalso.addEventListener('click', () => {
+        feedbackExplicacao.classList.remove('hidden');
+        feedbackExplicacaoInput.placeholder = 'Explique por que é Falsa (opcional)...';
+        feedbackExplicacao.dataset.correcao = 'Falsa';
+    });
+
+    // Envia feedback para a IA aprender
+    feedbackEnviar.addEventListener('click', async () => {
+        const correcao = feedbackExplicacao.dataset.correcao || 'Duvidosa';
+        const explicacao = feedbackExplicacaoInput.value.trim() || `Classificado pela comunidade como ${correcao}`;
+        
+        feedbackEnviar.disabled = true;
+        feedbackEnviar.textContent = '⏳ Enviando...';
+        
+        try {
+            const response = await fetch(`${API_URL}/feedback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    texto: ultimaResposta.textoOriginal || textoInput.value,
+                    classificacao: correcao,
+                    explicacao: explicacao,
+                    fonte: 'Comunidade'
+                })
+            });
+            
+            if (response.ok) {
+                feedbackObrigado.classList.remove('hidden');
+                feedbackObrigado.innerHTML = `
+                    <p>✅ <strong>Muito obrigado!</strong> A IA aprendeu com seu feedback!</p>
+                    <p style="font-size:0.9em;color:#666;">🧠 Quanto mais pessoas ensinarem, mais inteligente ela fica!</p>
+                    <p style="font-size:0.8em;color:#28a745;">📚 Sua contribuição foi adicionada ao banco comunitário!</p>
+                `;
+                feedbackCorrecao.classList.add('hidden');
+                feedbackExplicacao.classList.add('hidden');
+                carregarEstatisticas();
+            } else {
+                alert('❌ Erro ao enviar feedback. Tente novamente.');
+            }
+        } catch {
+            alert('❌ Erro ao enviar feedback. Tente novamente.');
+        }
+        
+        feedbackEnviar.disabled = false;
+        feedbackEnviar.textContent = '📤 Enviar correção';
+    });
+
+    // ==========================================
+    // BOTÃO DE ÁUDIO
     // ==========================================
     audioBtn.addEventListener('click', () => {
         if (ultimaResposta.texto) {
-            // Monta a frase completa com a classificação
-            const frase = `A notícia analisada é ${ultimaResposta.classificacao} com ${ultimaResposta.confianca} por cento de confiança. ${ultimaResposta.texto}`;
+            const frase = `A notícia analisada é ${ultimaResposta.classificacao} com ${ultimaResposta.confianca}% de confiança. ${ultimaResposta.texto}`;
             falar(frase);
         } else {
-            alert('⚠️ Nenhuma análise disponível. Analise uma notícia primeiro.');
+            alert('⚠️ Nenhuma análise disponível.');
         }
     });
 
@@ -184,9 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     analisarBtn.addEventListener('click', () => {
         const texto = textoInput.value.trim();
-        if (!texto) { 
-            alert('📝 Cole um texto ou URL para analisar'); 
-            return; 
+        if (!texto) {
+            alert('📝 Cole um texto ou URL para analisar');
+            return;
         }
         analisarNoticia(texto);
     });
@@ -197,17 +306,13 @@ document.addEventListener('DOMContentLoaded', () => {
     novoBtn.addEventListener('click', () => {
         textoInput.value = '';
         resultado.classList.add('hidden');
+        feedbackArea.classList.add('hidden');
+        feedbackCorrecao.classList.add('hidden');
+        feedbackExplicacao.classList.add('hidden');
+        feedbackObrigado.classList.add('hidden');
         audioBtn.disabled = true;
         document.getElementById('audioStatus').textContent = '🔇 Aguarde a análise';
-        document.getElementById('audioStatus').style.color = '#495057';
-        ultimaResposta = { texto: '', classificacao: '', confianca: 0 };
-        
-        // Esconde a URL lida
-        const urlDiv = document.getElementById('analise_url');
-        if (urlDiv) {
-            urlDiv.style.display = 'none';
-        }
-        
+        ultimaResposta = { texto: '', classificacao: '', confianca: 0, textoOriginal: '' };
         textoInput.focus();
     });
 
@@ -222,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // TECLA ENTER (Ctrl + Enter) PARA ANALISAR
+    // TECLA ENTER (Ctrl+Enter)
     // ==========================================
     textoInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.ctrlKey) {
