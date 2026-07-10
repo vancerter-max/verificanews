@@ -1,10 +1,10 @@
 // ==========================================
-// VARIÁVEL DA API
+// VARIÁVEL DA API (CONECTADA À SUA IA)
 // ==========================================
-const API_URL = 'https://vancer.pythonanywhere.com';
+const API_URL = 'https://vancer.pythonanywhere.com';  // URL CORRETA
 
 // ==========================================
-// VARIÁVEIS GLOBAIS
+// VARIÁVEL PARA ARMAZENAR A ÚLTIMA RESPOSTA
 // ==========================================
 let ultimaResposta = {
     texto: '',
@@ -14,7 +14,7 @@ let ultimaResposta = {
 };
 
 // ==========================================
-// FUNÇÃO DE ÁUDIO
+// FUNÇÃO DE ÁUDIO (LEITURA EM VOZ ALTA)
 // ==========================================
 function falar(texto) {
     if ('speechSynthesis' in window) {
@@ -104,19 +104,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('audioStatus').textContent = '⏳ Analisando...';
 
         try {
+            console.log('📤 Enviando para:', API_URL);
             const response = await fetch(`${API_URL}/analisar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ texto: texto })
             });
 
-            if (!response.ok) throw new Error('Erro na análise');
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
 
             const data = await response.json();
             
             if (data.erro) throw new Error(data.erro);
             
-            // Guarda a resposta para o áudio e feedback
+            // Guarda a resposta
             ultimaResposta = {
                 texto: data.explicacao || 'Análise concluída.',
                 classificacao: data.classificacao || 'Duvidosa',
@@ -127,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             exibirResultado(data);
 
         } catch (error) {
+            console.error('❌ Erro:', error);
             alert('❌ Erro ao analisar: ' + error.message);
             document.getElementById('audioStatus').textContent = '❌ Erro na análise';
         } finally {
@@ -155,8 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
         confiancaDiv.textContent = `🎯 Confiança: ${data.confianca || 0}%`;
 
         // URL
-        if (data.url_lida) {
-            urlDiv.textContent = `🔗 URL lida: ${data.url_lida}`;
+        if (data.url_analisada) {
+            urlDiv.textContent = `🔗 URL lida: ${data.url_analisada}`;
             urlDiv.style.display = 'block';
         } else {
             urlDiv.style.display = 'none';
@@ -185,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostra resultado e feedback
         resultado.classList.remove('hidden');
         
-        // Mostra área de feedback (se não for erro)
         if (data.classificacao !== 'Erro') {
             feedbackArea.classList.remove('hidden');
             feedbackObrigado.classList.add('hidden');
@@ -194,8 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         resultado.scrollIntoView({ behavior: 'smooth' });
-        
-        // Atualiza estatísticas
         carregarEstatisticas();
     }
 
@@ -203,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // FEEDBACK - COMUNIDADE ENSINA A IA
     // ==========================================
 
-    // Usuário diz que a IA acertou
     feedbackSim.addEventListener('click', () => {
         feedbackObrigado.classList.remove('hidden');
         feedbackObrigado.innerHTML = `
@@ -214,28 +214,24 @@ document.addEventListener('DOMContentLoaded', () => {
         feedbackExplicacao.classList.add('hidden');
     });
 
-    // Usuário diz que a IA errou
     feedbackNao.addEventListener('click', () => {
         feedbackCorrecao.classList.remove('hidden');
         feedbackExplicacao.classList.add('hidden');
         feedbackObrigado.classList.add('hidden');
     });
 
-    // Usuário corrige: Verdadeira
     corretoVerdadeiro.addEventListener('click', () => {
         feedbackExplicacao.classList.remove('hidden');
         feedbackExplicacaoInput.placeholder = 'Explique por que é Verdadeira (opcional)...';
         feedbackExplicacao.dataset.correcao = 'Verdadeira';
     });
 
-    // Usuário corrige: Falsa
     corretoFalso.addEventListener('click', () => {
         feedbackExplicacao.classList.remove('hidden');
         feedbackExplicacaoInput.placeholder = 'Explique por que é Falsa (opcional)...';
         feedbackExplicacao.dataset.correcao = 'Falsa';
     });
 
-    // Envia feedback para a IA aprender
     feedbackEnviar.addEventListener('click', async () => {
         const correcao = feedbackExplicacao.dataset.correcao || 'Duvidosa';
         const explicacao = feedbackExplicacaoInput.value.trim() || `Classificado pela comunidade como ${correcao}`;
@@ -260,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedbackObrigado.innerHTML = `
                     <p>✅ <strong>Muito obrigado!</strong> A IA aprendeu com seu feedback!</p>
                     <p style="font-size:0.9em;color:#666;">🧠 Quanto mais pessoas ensinarem, mais inteligente ela fica!</p>
-                    <p style="font-size:0.8em;color:#28a745;">📚 Sua contribuição foi adicionada ao banco comunitário!</p>
                 `;
                 feedbackCorrecao.classList.add('hidden');
                 feedbackExplicacao.classList.add('hidden');
