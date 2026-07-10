@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerificaNews - Detector de Fake News</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 VerificaNews</h1>
+            <p>Use IA para verificar se uma notícia é verdadeira</p>
+            <div class="badge">🇧🇷 Combate à desinformação</div>
+        </header>
+
+        <main>
+            <div class="input-area">
+                <textarea id="textoInput" placeholder="Cole aqui o texto ou URL da notícia..." rows="6"></textarea>
+                <button id="analisarBtn">🔎 Analisar Notícia</button>
+            </div>
+
+            <!-- Botão de acessibilidade -->
+            <div class="acessibilidade">
+                <button id="audioBtn" class="audio-btn" disabled>
+                    🔊 Ouvir Resposta
+                </button>
+                <span id="audioStatus" class="audio-status">🔇 Aguarde a análise</span>
+            </div>
+
+            <div id="loading" class="hidden">
+                <div class="spinner"></div>
+                <p>Analisando com IA...</p>
+            </div>
+
+            <div id="resultado" class="hidden">
+                <div class="resultado-card">
+                    <div id="classificacao"></div>
+                    <div id="confianca"></div>
+                    <div id="explicacao"></div>
+                    <div id="dicas"></div>
+                </div>
+                <button id="novoBtn">📝 Nova Análise</button>
+            </div>
+
+            <div class="exemplos">
+                <p><strong>📰 Exemplos para testar:</strong></p>
+                <button class="exemplo-btn" data-texto="A vacina contra COVID-19 causa infertilidade em mulheres. Estudos mostram que não há nenhuma evidência científica que comprove essa relação.">
+                    ❌ Fake News
+                </button>
+                <button class="exemplo-btn" data-texto="O Brasil sediará a COP30 em 2025. O evento será realizado em Belém do Pará.">
+                    ✅ Verdadeira
+                </button>
+            </div>
+        </main>
+
+        <!-- RODAPÉ REMOVIDO! -->
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
