@@ -136,3 +136,139 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important;
     border-radius: 8px;
 }
 .exemplo-btn:hover { background: #dee2e6; transform: none; box-shadow: none; }
+/* ==========================================
+   ESTILOS DO FEEDBACK - COMUNIDADE
+   ========================================== */
+
+#feedback-area {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0f4ff;
+    border-radius: 12px;
+    border: 2px solid #cce0ff;
+}
+
+.feedback-card h3 {
+    margin: 0 0 8px 0;
+    color: #1a1a2e;
+    font-size: 1.1em;
+}
+
+.feedback-card p {
+    margin: 5px 0;
+    color: #333;
+    font-size: 0.95em;
+}
+
+.feedback-botoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+}
+
+.feedback-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: auto;
+    margin: 0;
+}
+
+.feedback-btn:hover {
+    transform: translateY(-2px);
+}
+
+.feedback-btn.sim {
+    background: #d4edda;
+    color: #155724;
+}
+.feedback-btn.sim:hover {
+    background: #c3e6cb;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.feedback-btn.nao {
+    background: #f8d7da;
+    color: #721c24;
+}
+.feedback-btn.nao:hover {
+    background: #f5c6cb;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.feedback-btn.verdadeiro {
+    background: #d4edda;
+    color: #155724;
+}
+.feedback-btn.verdadeiro:hover {
+    background: #c3e6cb;
+}
+
+.feedback-btn.falso {
+    background: #f8d7da;
+    color: #721c24;
+}
+.feedback-btn.falso:hover {
+    background: #f5c6cb;
+}
+
+.feedback-btn.enviar {
+    background: linear-gradient(135deg, #0f3460, #1a1a2e);
+    color: white;
+}
+.feedback-btn.enviar:hover {
+    box-shadow: 0 4px 15px rgba(15, 52, 96, 0.4);
+}
+.feedback-btn.enviar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#feedback-correcao {
+    margin-top: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+}
+
+#feedback-explicacao {
+    margin-top: 10px;
+}
+
+#feedback-explicacao textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 50px;
+}
+
+#feedback-explicacao textarea:focus {
+    outline: none;
+    border-color: #0f3460;
+}
+
+#feedback-obrigado {
+    margin-top: 10px;
+    padding: 15px;
+    background: #d4edda;
+    border-radius: 8px;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+#feedback-obrigado p {
+    margin: 5px 0;
+}
+
+.hidden {
+    display: none;
+}
