@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VerificaNews - Detector de Fake News</title>
+    <title>VerificaNews - IA Comunitária</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🔍 VerificaNews</h1>
-            <p>Use IA para verificar se uma notícia é verdadeira</p>
-            <div class="badge">🇧🇷 Combate à desinformação</div>
+            <p>IA que aprende com a comunidade!</p>
+            <div class="badge">🧠 Aprendizado Comunitário</div>
         </header>
 
         <main>
@@ -37,9 +37,43 @@
                 <div class="resultado-card">
                     <div id="classificacao"></div>
                     <div id="confianca"></div>
+                    <div id="analise_url" style="display:none;"></div>
                     <div id="explicacao"></div>
                     <div id="dicas"></div>
                 </div>
+                
+                <!-- ========================================== -->
+                <!-- ÁREA DE FEEDBACK - COMUNIDADE ENSINA A IA   -->
+                <!-- ========================================== -->
+                <div id="feedback-area" class="hidden">
+                    <div class="feedback-card">
+                        <h3>🧠 Ajude a IA a aprender!</h3>
+                        <p>A classificação está correta?</p>
+                        <div class="feedback-botoes">
+                            <button id="feedbackSim" class="feedback-btn sim">✅ Sim, está certa!</button>
+                            <button id="feedbackNao" class="feedback-btn nao">❌ Não, está errada</button>
+                        </div>
+                        
+                        <div id="feedback-correcao" class="hidden">
+                            <p>Qual é a classificação correta?</p>
+                            <div class="feedback-botoes">
+                                <button id="corretoVerdadeiro" class="feedback-btn verdadeiro">✅ Verdadeira</button>
+                                <button id="corretoFalso" class="feedback-btn falso">❌ Falsa</button>
+                            </div>
+                            <div id="feedback-explicacao" class="hidden">
+                                <p>Por que você acha que está errado? (opcional)</p>
+                                <textarea id="feedbackExplicacaoInput" placeholder="Explique brevemente..." rows="2"></textarea>
+                                <button id="feedbackEnviar" class="feedback-btn enviar">📤 Enviar correção</button>
+                            </div>
+                        </div>
+                        
+                        <div id="feedback-obrigado" class="hidden">
+                            <p>✅ <strong>Obrigado!</strong> A IA aprendeu com seu feedback!</p>
+                            <p style="font-size:0.9em;color:#666;">🧠 Quanto mais pessoas ensinarem, mais inteligente ela fica!</p>
+                        </div>
+                    </div>
+                </div>
+
                 <button id="novoBtn">📝 Nova Análise</button>
             </div>
 
@@ -48,13 +82,21 @@
                 <button class="exemplo-btn" data-texto="A vacina contra COVID-19 causa infertilidade em mulheres. Estudos mostram que não há nenhuma evidência científica que comprove essa relação.">
                     ❌ Fake News
                 </button>
-                <button class="exemplo-btn" data-texto="O Brasil sediará a COP30 em 2025. O evento será realizado em Belém do Pará.">
+                <button class="exemplo-btn" data-texto="O Brasil sediará a COP30 em 2025. O evento será realizado em Belém do Pará e contará com a presença de diversos líderes mundiais.">
                     ✅ Verdadeira
                 </button>
             </div>
+
+            <div class="info">
+                <p>🧠 IA com <strong>aprendizado comunitário</strong> - quanto mais usam, mais inteligente fica!</p>
+                <p>📊 <span id="statsBanco">Carregando...</span> fake news no banco</p>
+                <p>🗳️ Foco em desinformação eleitoral 2026</p>
+            </div>
         </main>
 
-        <!-- RODAPÉ REMOVIDO! -->
+        <footer>
+            <p>🔍 VerificaNews - IA Comunitária contra fake news</p>
+        </footer>
     </div>
 
     <script src="script.js"></script>
